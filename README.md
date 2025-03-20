@@ -208,7 +208,7 @@ make clean
 * 笔试开始时，你需要 clone 题目仓库，并创建一个自己的 GitHub 私有仓库，开发过程中使用git进行版本控制。
 * **在代码提交截止时间前**，你应该将自己的 GitHub 仓库链接以 issue 的方式发表在本仓库下，注明姓名等个人信息。
 * 你的GitHub仓库应该包含优化实现的代码，并且在提交时设置为公开。性能最优的代码应该在main分支上。
-* 你的GitHub仓库应该包含一个名为performance.txt或performance.md的文件，内容是你在vgg16.conf算例上所取得的性能最优结果（在计算节点上，以Benchmark Mode运行的输出）。
+* 你的GitHub仓库的main分支应该包含一个名为performance.txt或performance.md的文件，内容是你在vgg16.conf算例上所取得的性能最优结果（在计算节点上，以Benchmark Mode运行的输出）。
 * 确认你的`Makefile`和`run.sh`是正确的，请确保你的代码可以在我们提供的机器上编译和运行；请确保代码的正确性和健壮性，我们会用不同的输入数据对代码进行测试。
 * 确保代码符合上一节所述**技术要求**；请确保代码的可读性，包括但不限于代码风格、注释等（建议使用VSCode的Clang-Format插件）。
 * 如你觉得有必要，你可以在 README.md 中补充一节文字简要说明你的代码的依赖（如果使用了spack中的软件）、构建方式和运行方式。你可以用一个`env.sh`文件来定义依赖，比如使用了nvcc编译器，你可以编写如下`env.sh`文件，我们就可以通过`source env.sh`来加载spack依赖。
