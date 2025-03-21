@@ -14,13 +14,13 @@
 #define TILE_OUT_H 4L
 #define TILE_OUT_W 4L
 
-#define ROUND(A, B) ((A) / (B) * (B))
-#define ROUND_UP(A, B) (((A) + (B)-1) / (B) * (B))
+#define ROUND(A, B) ((A) - (A) % (B))
+#define ROUND_UP(A, B) ( ROUND(A-1,B) + (B))
 
 #define DIVIDE(A, B) ((A) / (B))
-#define DIVIDE_UP(A, B) (((A) + (B)-1) / (B))
+#define DIVIDE_UP(A, B) (((A)-1) / (B) +1)
 #define DIV(A, B) ((A) / (B))
-#define DIV_UP(A, B) (((A) + (B)-1) / (B))
+#define DIV_UP(A, B) (((A)-1) / (B) +1)
 
 /**
  * @brief Structure representing tile indices.
