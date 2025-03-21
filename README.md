@@ -58,13 +58,15 @@ void naive_conv(float *image,
 
 **winograd算法** 是一种快速的卷积算法。是1980年 Shmuel Winograd 提出用来减少FIR滤波器计算量的一个算法。该算法通过增加加法操作来降低卷积算法中的较慢的乘法操作；若是采用直接按滑动窗口方式计算 $r \times s$ 的卷积核在 $m \times n$ 大小的图片上的卷积（步长为1，边缘填充为1），需要 $m \times n \times r \times s$ 次乘法；而采用 winograd 算法：其乘法数量减少到 $(m+r−1)(n+s−1)$ ，从而提高性能。该算法自提出后，于2016年在深度学习领域被重新发现并应用。基础算法如下图所示（摘自 https://arxiv.org/abs/1509.09308 ）。
 
-![alt text](assets/algo.png)
+
+![image](https://github.com/user-attachments/assets/dcb991a1-6f04-41fb-a57e-7815c5827e37)
 
 
 本次招新的笔试任务是对**winograd算法**进行优化。该算法实现了 $F(4 \times 4, 3 \times 3)$ 的 winograd 算法，即将输出图像按 $4 \times 4$ 做分片（tiling），卷积核的大小是 $3 \times 3$ 。该算法实现了**批量卷积**的计算，即输入数据的图片是 $(Batch，IC, H, W)$ 形状的张量（多维数组），其中 $Batch$ （有些论文也用 $N$ 作为记号）是批次大小， $IC$ （有些论文也用 $C$ 作为记号）是输入通道数， $H$ 是图片高度， $W$ 是图片宽度。卷积核的是 $(OC, IC, R, S)$ 形状的张量，其中 $OC$ （有些论文也用 $K$ 作为记号）是输出通道数， $IC$ 是输入通道数， $R = S$ 是卷积核的大小。计算过程中，输入图片没有填充（padding），卷积核的步长是 $1$ 。输入通道 $IC$ 会被规约（Reduce），因此输出的图片是 $(Batch, OC, H-R+1, W-S+1)$ 形状的张量。批量卷积的计算示意图如下图所示（摘自 https://arxiv.org/abs/1509.09308 ）。
 
 
-![alt text](assets/tensors.png)
+![image](https://github.com/user-attachments/assets/8381cbb0-30d4-4e8e-b4e5-5c12fb460ef0)
+
 
 **Winograd算法** 的一个关键技巧是分片（tiling），即将输出图片分片，分片后的每个tile在输入图片上也会有一个对应的tile，并且输入图片上的tile像瓦片那样边缘互相重叠。本次实验的代码已经实现了分片（见`get_tile_index`和`get_tiling_info`这两个函数）。为了使大家更容易理解和上手，我们还实现了张量排布的转换来提升访存的空间局部性（见`image_packing`、`filter_packing`和`output_unpacking_store`这三个函数）。
 
