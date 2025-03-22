@@ -113,38 +113,35 @@ z2 = 4.0f * packed_image_tensor[1][w][idx]
       V_tensor[3][w][idx] = z3;
       V_tensor[4][w][idx] = z4;
       V_tensor[5][w][idx] = z5;*/
-      V_tensor[0][w][idx]=4.0f * packed_image_tensor[0][w][idx] 
-      -5.0f * packed_image_tensor[2][w][idx] 
-      + packed_image_tensor[4][w][idx];
+      float diff1_2 = packed_image_tensor[1][w][idx] - packed_image_tensor[2][w][idx];
+float diff1_3 = packed_image_tensor[1][w][idx] - packed_image_tensor[3][w][idx];
+float temp = packed_image_tensor[4][w][idx] - packed_image_tensor[2][w][idx];
 
-      V_tensor[1][w][idx] = -4.0f * ( packed_image_tensor[1][w][idx] 
-      - packed_image_tensor[2][w][idx] )
-      + packed_image_tensor[3][w][idx] 
-      + packed_image_tensor[4][w][idx];
+V_tensor[0][w][idx] = 4.0f * packed_image_tensor[0][w][idx] 
+                     -5.0f * packed_image_tensor[2][w][idx] 
+                     + packed_image_tensor[4][w][idx];
 
-      V_tensor[2][w][idx] =  4.0f *( packed_image_tensor[1][w][idx] 
-      - packed_image_tensor[2][w][idx] )
-      - packed_image_tensor[3][w][idx] 
-      + packed_image_tensor[4][w][idx];
-      V_tensor[3][w][idx] = -2.0f *( packed_image_tensor[1][w][idx] 
-      -packed_image_tensor[3][w][idx])
-      - packed_image_tensor[2][w][idx]  
-      + packed_image_tensor[4][w][idx];
+V_tensor[1][w][idx] = -4.0f * diff1_2 
+                     + packed_image_tensor[3][w][idx] 
+                     + packed_image_tensor[4][w][idx];
 
-      V_tensor[4][w][idx] =  2.0f *( packed_image_tensor[1][w][idx] 
-        - packed_image_tensor[3][w][idx] )  
-          - packed_image_tensor[2][w][idx]
-      + packed_image_tensor[4][w][idx];
-      
-      V_tensor[5][w][idx] =  4.0f * packed_image_tensor[1][w][idx] 
-      -5.0f * packed_image_tensor[3][w][idx] 
-      + packed_image_tensor[5][w][idx];
+V_tensor[2][w][idx] = 4.0f * diff1_2 
+                     - packed_image_tensor[3][w][idx] 
+                     + packed_image_tensor[4][w][idx];
+
+V_tensor[3][w][idx] = -2.0f * diff1_3 + temp;
+V_tensor[4][w][idx] = 2.0f * diff1_3 + temp;
+
+V_tensor[5][w][idx] = 4.0f * packed_image_tensor[1][w][idx] 
+                     -5.0f * packed_image_tensor[3][w][idx] 
+                     + packed_image_tensor[5][w][idx];
+
 
 
     }
 //#pragma omp parallel for
     for (int64_t h = 0; h < ti.tile_in_h; ++h) {
-      float z0, z1, z2, z3, z4, z5, z6;
+    /* float z0, z1, z2, z3, z4, z5, z6;
       z6 = V_tensor[h][0][idx];
 
       z0 = 4.0f * z6;
@@ -191,6 +188,34 @@ z2 = 4.0f * packed_image_tensor[1][w][idx]
       V_tensor[h][3][idx] = z3;
       V_tensor[h][4][idx] = z4;
       V_tensor[h][5][idx] = z5;
+    */
+   V_tensor[h][0][idx] = 4.0f * V_tensor[h][0][idx] 
+   -5.0f * V_tensor[h][2][idx] 
+   + V_tensor[h][4][idx];
+
+V_tensor[h][1][idx] = -4.0f * ( V_tensor[h][1][idx] 
+             - V_tensor[h][2][idx] )
+   + V_tensor[h][3][idx] 
+   + V_tensor[h][4][idx];
+
+V_tensor[h][2][idx] =  4.0f *( V_tensor[h][1][idx] 
+            - V_tensor[h][2][idx] )
+   - V_tensor[h][3][idx] 
+   + V_tensor[h][4][idx];
+
+V_tensor[h][3][idx] = -2.0f *( V_tensor[h][1][idx] 
+            - V_tensor[h][3][idx])
+   - V_tensor[h][2][idx]  
+   + V_tensor[h][4][idx];
+
+V_tensor[h][4][idx] =  2.0f *( V_tensor[h][1][idx] 
+            - V_tensor[h][3][idx] )  
+   - V_tensor[h][2][idx]
+   + V_tensor[h][4][idx];
+   
+V_tensor[h][5][idx] =  4.0f * V_tensor[h][1][idx] 
+   -5.0f * V_tensor[h][3][idx] 
+   + V_tensor[h][5][idx];
     }
 
   }
@@ -209,11 +234,12 @@ void filter_transform(float *__restrict__ packed_filter,
   packed_filter_tensor_t packed_filter_tensor = (packed_filter_tensor_t)packed_filter;
   U_tensor_t U_tensor = (U_tensor_t)U;
 
-  float z0, z1, z2, z3, z4, z5, z6;
+ 
  // #pragma omp parallel for
   for (int64_t idx = 0; idx < collapsed_dim_size; idx++) {
    // #pragma omp parallel for
     for (int64_t w = 0; w < fs.w; ++w) {
+     /* float z0, z1, z2, z3, z4, z5, z6;
       z6 = packed_filter_tensor[0][w][idx];
 
       z0 = (1.0f / 4.0f) * z6;
@@ -242,10 +268,27 @@ void filter_transform(float *__restrict__ packed_filter,
       U_tensor[2][w][idx] = z2;
       U_tensor[3][w][idx] = z3;
       U_tensor[4][w][idx] = z4;
-      U_tensor[5][w][idx] = z5;
-    }
-    //#pragma omp parallel for
+      U_tensor[5][w][idx] = z5;*/
+
+      float tmp1 = packed_filter_tensor[1][w][idx] / 6.0f;
+      float tmp2 = (packed_filter_tensor[0][w][idx] + packed_filter_tensor[2][w][idx]) / (-6.0f);
+      
+      U_tensor[0][w][idx] = packed_filter_tensor[0][w][idx] / 4.0f;
+      
+      U_tensor[1][w][idx] = tmp2 - tmp1;
+      
+      U_tensor[2][w][idx] = tmp2 + tmp1;
+      
+      U_tensor[3][w][idx] = packed_filter_tensor[0][w][idx] / 24.0f
+                            + packed_filter_tensor[1][w][idx] / 12.0f
+                            + packed_filter_tensor[2][w][idx] / 6.0f;
+      
+      U_tensor[4][w][idx] = U_tensor[3][w][idx] - tmp1;
+      
+      U_tensor[5][w][idx] = packed_filter_tensor[2][w][idx];}
+   // #pragma omp parallel for
     for (int64_t h = 0; h < us.h; ++h) {
+    /*  float z0, z1, z2, z3, z4, z5, z6;
       z6 = U_tensor[h][0][idx];
 
       z0 = (1.0f / 4.0f) * z6;
@@ -274,7 +317,25 @@ void filter_transform(float *__restrict__ packed_filter,
       U_tensor[h][2][idx] = z2;
       U_tensor[h][3][idx] = z3;
       U_tensor[h][4][idx] = z4;
-      U_tensor[h][5][idx] = z5;
+      U_tensor[h][5][idx] = z5;*/
+   
+        float tmp1 = U_tensor[h][1][idx] / 6.0f;
+        float tmp2 = (U_tensor[h][0][idx] + U_tensor[h][2][idx]) / (-6.0f);
+    
+        U_tensor[h][0][idx] = U_tensor[h][0][idx] / 4.0f;
+    
+        U_tensor[h][1][idx] = tmp2 - tmp1;
+    
+        U_tensor[h][2][idx] = tmp2 + tmp1;
+    
+        U_tensor[h][3][idx] = U_tensor[h][0][idx] / 24.0f
+                             + U_tensor[h][1][idx] / 12.0f
+                             + U_tensor[h][2][idx] / 6.0f;
+    
+        U_tensor[h][4][idx] = U_tensor[h][3][idx] - tmp1;
+    
+        U_tensor[h][5][idx] = U_tensor[h][2][idx];
+    
     }
   }
 }
@@ -287,11 +348,12 @@ void output_transform(float *__restrict__ M,
   typedef float(*Y_tensor_t)[ti.tile_in_w][collapsed_dim_size];
   M_tensor_t M_tensor = (M_tensor_t)M;
   Y_tensor_t Y_tensor = (Y_tensor_t)Y;
-  float z0, z1, z2, z3, z4;
+  
   //#pragma omp parallel for
   for (int64_t idx = 0; idx < collapsed_dim_size; idx++) {
-   // #pragma omp parallel for
+    #pragma omp parallel for
     for (int64_t w = 0; w < ti.tile_in_w; ++w) {
+      /*float z0, z1, z2, z3, z4;
       z4 = M_tensor[0][w][idx];
       z0 = z4;
 
@@ -325,46 +387,43 @@ void output_transform(float *__restrict__ M,
       Y_tensor[0][w][idx] = z0;
       Y_tensor[1][w][idx] = z1;
       Y_tensor[2][w][idx] = z2;
-      Y_tensor[3][w][idx] = z3;
+      Y_tensor[3][w][idx] = z3;*/
+      float tmp1=M_tensor[1][w][idx] + M_tensor[2][w][idx];
+      float tmp2=M_tensor[1][w][idx] - M_tensor[2][w][idx] ;
+      
+      float tmp3 = M_tensor[3][w][idx] + M_tensor[4][w][idx];
+      float tmp4 =2.0f*( M_tensor[3][w][idx] - M_tensor[4][w][idx]);
+
+Y_tensor[0][w][idx] = M_tensor[0][w][idx] + tmp1 + tmp3;
+
+Y_tensor[1][w][idx] = tmp2 +  tmp4;
+
+Y_tensor[2][w][idx] = tmp1 + 4.0f * tmp3;
+
+Y_tensor[3][w][idx] = tmp2 + 4.0f * (tmp4) + M_tensor[5][w][idx];
+
     }
-   // #pragma omp parallel for
+    //#pragma omp parallel for
     for (int64_t h = 0; h < ti.tile_out_h; ++h) {
-      z4 = Y_tensor[h][0][idx];
-
-      z0 = z4;
-
-      z4 = Y_tensor[h][1][idx];
-      z0 += z4;
-      z1 = z4;
-      z2 = z4;
-      z3 = z4;
-
-      z4 = Y_tensor[h][2][idx];
-      z0 += z4;
-      z1 += -z4;
-      z2 += z4;
-      z3 += -z4;
-
-      z4 = Y_tensor[h][3][idx];
-      z0 += z4;
-      z1 += 2.0f * z4;
-      z2 += 4.0f * z4;
-      z3 += 8.0f * z4;
-
-      z4 = Y_tensor[h][4][idx];
-      z0 += z4;
-      z1 += -2.0f * z4;
-      z2 += 4.0f * z4;
-      z3 += -8.0f * z4;
-
-      z4 = Y_tensor[h][5][idx];
-
-      z3 += z4;
-
-      Y_tensor[h][0][idx] = z0;
-      Y_tensor[h][1][idx] = z1;
-      Y_tensor[h][2][idx] = z2;
-      Y_tensor[h][3][idx] = z3;
+      float y0 = Y_tensor[h][0][idx];
+      float y1 = Y_tensor[h][1][idx];
+      float y2 = Y_tensor[h][2][idx];
+      float y3 = Y_tensor[h][3][idx];
+      float y4 = Y_tensor[h][4][idx];
+      float y5 = Y_tensor[h][5][idx];
+      
+      // 预计算公共子表达式
+      float sum1_2 = y1 + y2;
+      float diff1_2 = y1 - y2;
+      float sum3_4 = y3 + y4;
+      float diff3_4 = y3 - y4;
+      
+      // 最终计算结果
+      Y_tensor[h][0][idx] = y0 + sum1_2 + sum3_4;
+      Y_tensor[h][1][idx] = diff1_2 + 2.0f * diff3_4;
+      Y_tensor[h][2][idx] = sum1_2 + 4.0f * sum3_4;
+      Y_tensor[h][3][idx] = diff1_2 + 8.0f * diff3_4 + y5;
+      
     }
   }
 }
