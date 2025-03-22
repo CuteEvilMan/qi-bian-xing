@@ -6,6 +6,9 @@
 
 #include "utils.h"
 
+#include <pthread.h>
+
+
 void image_transform(float *__restrict__ packed_image,
                      float *__restrict__ V,
                      const V_shape_t vs,
@@ -16,17 +19,58 @@ void image_transform(float *__restrict__ packed_image,
   packed_image_tensor_t packed_image_tensor = (packed_image_tensor_t)packed_image;
   V_tensor_t V_tensor = (V_tensor_t)V;
 
-  float z0, z1, z2, z3, z4, z5, z6;
+  
 
 
  // #pragma omp parallel for
+
   for (int64_t idx = 0; idx < collapsed_dim_size; idx++) {
+    //#pragma omp parallel
     //#pragma omp parallel for
     for (int64_t w = 0; w < ti.tile_in_w; ++w) {
+   /*   float z0, z1, z2, z3, z4, z5, z6;
       z6 = packed_image_tensor[0][w][idx];
 
       z0 = 4.0f * z6;
+//z0=4.0f*packed_image_tensor[0][w][idx]-5.0f*packed_image_tensor[2][w][idx]+packed_image_tensor[4][w][idx]
 
+
+z0 = 4.0f * packed_image_tensor[0][w][idx] 
+     -5.0f * packed_image_tensor[2][w][idx] 
+     + packed_image_tensor[4][w][idx];
+z1 = -4.0f * packed_image_tensor[1][w][idx] 
+   -4.0f * packed_image_tensor[2][w][idx] 
+     + packed_image_tensor[3][w][idx] 
+     + packed_image_tensor[4][w][idx];
+z2 = 4.0f * packed_image_tensor[1][w][idx] 
+     -4.0f * packed_image_tensor[2][w][idx] 
+     - packed_image_tensor[3][w][idx] 
+     + packed_image_tensor[4][w][idx];
+     z3 = -2.0f * packed_image_tensor[1][w][idx] 
+     - packed_image_tensor[2][w][idx] 
+     + 2.0f * packed_image_tensor[3][w][idx] 
+     + packed_image_tensor[4][w][idx];
+     z4 = 2.0f * packed_image_tensor[1][w][idx] 
+     - packed_image_tensor[2][w][idx] 
+     -2.0f * packed_image_tensor[3][w][idx] 
+     + packed_image_tensor[4][w][idx];
+     z5 = 4.0f * packed_image_tensor[1][w][idx] 
+     -5.0f * packed_image_tensor[3][w][idx] 
+     + packed_image_tensor[5][w][idx];
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
       z6 = packed_image_tensor[1][w][idx];
 
       z1 = -4.0f * z6;
@@ -68,10 +112,39 @@ void image_transform(float *__restrict__ packed_image,
       V_tensor[2][w][idx] = z2;
       V_tensor[3][w][idx] = z3;
       V_tensor[4][w][idx] = z4;
-      V_tensor[5][w][idx] = z5;
+      V_tensor[5][w][idx] = z5;*/
+      V_tensor[0][w][idx]=4.0f * packed_image_tensor[0][w][idx] 
+      -5.0f * packed_image_tensor[2][w][idx] 
+      + packed_image_tensor[4][w][idx];
+
+      V_tensor[1][w][idx] = -4.0f * ( packed_image_tensor[1][w][idx] 
+      - packed_image_tensor[2][w][idx] )
+      + packed_image_tensor[3][w][idx] 
+      + packed_image_tensor[4][w][idx];
+
+      V_tensor[2][w][idx] =  4.0f *( packed_image_tensor[1][w][idx] 
+      - packed_image_tensor[2][w][idx] )
+      - packed_image_tensor[3][w][idx] 
+      + packed_image_tensor[4][w][idx];
+      V_tensor[3][w][idx] = -2.0f *( packed_image_tensor[1][w][idx] 
+      -packed_image_tensor[3][w][idx])
+      - packed_image_tensor[2][w][idx]  
+      + packed_image_tensor[4][w][idx];
+
+      V_tensor[4][w][idx] =  2.0f *( packed_image_tensor[1][w][idx] 
+        - packed_image_tensor[3][w][idx] )  
+          - packed_image_tensor[2][w][idx]
+      + packed_image_tensor[4][w][idx];
+      
+      V_tensor[5][w][idx] =  4.0f * packed_image_tensor[1][w][idx] 
+      -5.0f * packed_image_tensor[3][w][idx] 
+      + packed_image_tensor[5][w][idx];
+
+
     }
 //#pragma omp parallel for
     for (int64_t h = 0; h < ti.tile_in_h; ++h) {
+      float z0, z1, z2, z3, z4, z5, z6;
       z6 = V_tensor[h][0][idx];
 
       z0 = 4.0f * z6;
@@ -302,7 +375,7 @@ void filter_packing(float *__restrict__ filter, float *__restrict__ packed_filte
   filter_tensor_t filter_tensor = (filter_tensor_t)filter;
   packed_filter_tensor_t packed_filter_tensor = (packed_filter_tensor_t)packed_filter;
 
-  //#pragma omp parallel for collapse(4)
+  #pragma omp parallel for collapse(4)
 
   for (int64_t h = 0; h < fs.h; ++h)
     for (int64_t w = 0; w < fs.w; ++w)
@@ -320,7 +393,7 @@ void image_packing(float *__restrict__ image,
   packedImage_tensor_t packed_image_tensor = (packedImage_tensor_t)packed_image;
   image_tensor_t image_tensor = (image_tensor_t)image;
 
-//#pragma omp parallel for collapse(4)
+#pragma omp parallel for collapse(4)
 
   for (int64_t tile = 0; tile < ti.num_tiles; tile++) {
     for (int64_t ic = 0; ic < is.ic; ic++) {
@@ -347,7 +420,7 @@ void output_unpacking_store(float *__restrict__ Y,
   Y_tensor_t Y_tensor = (Y_tensor_t)Y;
   out_tensor_t out_tensor = (out_tensor_t)out;
 
- // #pragma omp parallel for collapse(4)
+  #pragma omp parallel for collapse(4)
 
   for (int64_t h = 0; h < ti.tile_out_h; ++h) {
     for (int64_t w = 0; w < ti.tile_out_w; ++w) {
@@ -371,7 +444,8 @@ void sgemm(const int64_t M, const int64_t N, const int64_t K, float *A, float *B
   B_tensor_t B_tensor = (B_tensor_t)B;
   C_tensor_t C_tensor = (C_tensor_t)C;
 
-  //#pragma omp parallel for collapse(2)
+ // #pragma omp parallel for collapse(2)
+ // #pragma omp parallel
 
   for (int64_t m = 0; m < M; ++m) {
     for (int64_t n = 0; n < N; ++n) {
@@ -408,8 +482,12 @@ void winograd_convolution(
   float *M = (float *)malloc(sizeof(float) * ti.tile_in_h * ti.tile_in_w * us.oc * vs.num_tiles);
   float *Y = (float *)malloc(sizeof(float) * ti.tile_out_h * ti.tile_in_w * os.oc * ti.num_tiles);
 
+  //#pragma omp parallel
+
   filter_packing(filter, packed_filter, fs);
   filter_transform(packed_filter, U, fs, us, us.oc * us.ic);
+
+ // #pragma omp parallel
 
   image_packing(image, packed_image, is, ti);
   image_transform(packed_image, V, vs, ti, vs.ic * vs.num_tiles);
@@ -424,6 +502,7 @@ void winograd_convolution(
       U_tensor_t U_tensor = (U_tensor_t)U;
       V_tensor_t V_tensor = (V_tensor_t)V;
       M_tensor_t M_tensor = (M_tensor_t)M;
+
       sgemm(vs.num_tiles,
             us.oc,
             us.ic,
